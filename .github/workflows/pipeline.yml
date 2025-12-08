@@ -3,8 +3,8 @@ name: Tourism Package Purchase pipeline
 on:
   push:
     branches:
-      - main  # Automatically triggers on push to the main branch
-  workflow_dispatch:   # Allows manual trigger
+      - main
+  workflow_dispatch:   # Manual trigger
 
 jobs:
 
@@ -52,7 +52,7 @@ jobs:
       - name: Model Building
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          NGROK_TOKEN: ${{ secrets.NGROK_TOKEN }}   # Added for ngrok authentication
+          NGROK_TOKEN: ${{ secrets.NGROK_TOKEN }}   # Ngrok auth token
         run: python tourism_project/model_building/train.py
 
   deploy-hosting:
