@@ -1,0 +1,39 @@
+name: Test Upload to HF
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Install hf hub
+      run: pip install huggingface_hub
+
+    - name: Create dummy test file
+      run: echo "This is a test file" > dummy.txt
+
+    - name: Upload to HF
+      run: |
+        python3 << 'EOF'
+        import os
+        from huggingface_hub import HfApi
+
+        token = os.getenv("HF_TOKEN")
+        api = HfApi(token=token)
+
+        api.upload_file(
+            path_or_fileobj="dummy.txt",
+            path_in_repo="dummy.txt",
+            repo_id="<username>/<your-dataset-or-model>",
+            repo_type="dataset"
+        )
+        print("Upload completed!")
+        EOF
