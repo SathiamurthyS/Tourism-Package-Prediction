@@ -32,7 +32,7 @@ jobs:
         api.upload_file(
             path_or_fileobj="dummy.txt",
             path_in_repo="dummy.txt",
-            repo_id="<username>/<your-dataset-or-model>",
+            repo_id="samdurai102024/Tourism-Package-Prediction",
             repo_type="dataset"
         )
         print("Upload completed!")
