@@ -28,7 +28,7 @@ except RepositoryNotFoundError:
     create_repo(repo_id=repo_id, repo_type=repo_type, private=False)
     print(f"Space '{repo_id}' created.")
 
-#data upload 
+#data upload
 api.upload_folder(
     folder_path="tourism_project/data",
     repo_id=repo_id,

@@ -37,6 +37,12 @@ from pyngrok import ngrok
 import mlflow
 import time
 
+
+import os
+from pyngrok import ngrok
+import mlflow
+import getpass
+
 #Add a simple delay before each MLflow log call
 def safe_log_metrics(metric_dict, delay=0.6):
     #Logs multiple metrics to MLflow with a delay to avoid rate limits.
@@ -50,32 +56,59 @@ def slow_call(fn, *args, delay=0.6, **kwargs):
     time.sleep(delay)  # delay after EVERY MLflow API call
     return result
 
-# Try to read from environment (GitHub Actions)
+# ================================
+# 1. Get Ngrok Token
+# ================================
 ngrok_token = os.getenv("NGROK_TOKEN")
 
-# If running locally / Colab → ask securely
-if ngrok_token is None:
-    print("NGROK_TOKEN not set. Please enter your Ngrok auth token.")
-    ngrok_token = getpass.getpass("Enter Ngrok Token: ")
+if not ngrok_token:
+    try:
+        print("NGROK_TOKEN not found. Please enter it manually.")
+        ngrok_token = getpass.getpass("Enter Ngrok Token: ")
+    except EOFError:
+        raise RuntimeError(
+            "NGROK_TOKEN missing and cannot prompt for input. "
+            "Set NGROK_TOKEN in environment for CI runs."
+        )
 
-# Set the token
 ngrok.set_auth_token(ngrok_token)
 
-ngrok.kill()
+# ================================
+# 2. Behavior changes in CI
+# ================================
+if os.getenv("CI"):  # GitHub Actions environment
+    print("Running inside CI — Ngrok tunnel DISABLED.")
 
-ENV = "prod"
+    # Track locally inside the runner workspace
+    mlflow.set_tracking_uri("file:./mlruns")
+    mlflow.set_experiment("Tourism_Experiment_Prod")
 
-# Start public tunnel (simpler for MLflow)
-tunnel = ngrok.connect(5000, proto="http")  # do NOT use private=True
-public_url = tunnel.public_url
-print("MLflow Public URL (PROD):", public_url)
+    tunnel_url = None
 
-# Use ngrok http URL for MLflow tracking
-mlflow.set_tracking_uri(public_url)
-mlflow.set_experiment("Tourism_Experiment_Prod")
+else:
+    # ================================
+    # 3. Local / Colab — Enable Ngrok
+    # ================================
+    print("Running locally — starting Ngrok...")
 
-print("Tracking URI (prod):", public_url)
-print("Experiment: Tourism_Experiment_Prod")
+    ngrok.kill()  # Avoid ERR_NGROK_334
+
+    tunnel = ngrok.connect(5000, proto="http")
+    tunnel_url = tunnel.public_url
+
+    print("Ngrok Tunnel Started:", tunnel_url)
+    print(f"Access MLflow UI at: {tunnel_url}/")
+
+    # Public tracking for local MLflow
+    mlflow.set_tracking_uri(tunnel_url)
+    mlflow.set_experiment("Tourism_Experiment_Prod")
+
+# ================================
+# 4. Final log output
+# ================================
+print("Tracking URI:", mlflow.get_tracking_uri())
+print("Experiment:", mlflow.get_experiment_by_name("Tourism_Experiment_Prod"))
+
 
 api = HfApi()
 
@@ -117,26 +150,6 @@ X_test = pd.read_csv(Xtest_path)
 y_train = pd.read_csv(ytrain_path)
 y_val = pd.read_csv(yval_path)
 y_test = pd.read_csv(ytest_path)
-
-# Drop Customer ID column as no significance to prediction or impact to data analysis
-#X_train.drop(["CustomerID"], axis=1, inplace=True)
-#X_val.drop(["CustomerID"], axis=1, inplace=True)
-#X_test.drop(["CustomerID"], axis=1, inplace=True)
-
-# Drop Unnamed: 0 column as no significance or impact to data analysis
-#X_train.drop(["Unnamed: 0"], axis=1, inplace=True)
-#X_val.drop(["Unnamed: 0"], axis=1, inplace=True)
-#X_test.drop(["Unnamed: 0"], axis=1, inplace=True)
-
-#Consolidate and Combine Fe Male and Female in all the data sets
-#X_train["Gender"] = X_train["Gender"].str.strip().str.title()
-#X_train["Gender"] = X_train["Gender"].replace({"Fe Male": "Female"})
-
-#X_val["Gender"] = X_val["Gender"].str.strip().str.title()
-#X_val["Gender"] = X_val["Gender"].replace({"Fe Male": "Female"})
-
-#X_test["Gender"] = X_test["Gender"].str.strip().str.title()
-#X_test["Gender"] = X_test["Gender"].replace({"Fe Male": "Female"})
 
 # Convert target values (not column names) to integer
 y_train = y_train.astype(int)
@@ -274,7 +287,7 @@ with mlflow.start_run():
         repo_id=repo_id,
         repo_type=repo_type,
     )
-#Commit changes 
+#Commit changes
     api.create_commit(
         repo_id=repo_id,
         repo_type=repo_type,

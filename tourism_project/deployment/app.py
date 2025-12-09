@@ -8,7 +8,7 @@ model_path = hf_hub_download(repo_id="samdurai102024/Tourism-Package-Prediction"
 model = joblib.load(model_path)
 
 # Streamlit UI for Tourism Package Purchase Prediction
-st.title("Tourism Package Purchase Prediction App")
+st.title("Tourism Package Purchase Prediction App submitted by Sathiamurthy Samidurai PGAIML student")
 st.write("""
 This application predicts the likelihood of a Tourism Package Purchase based on its operational parameters.
 Please enter the configuration data below to get a prediction.
