@@ -8,10 +8,10 @@ model_path = hf_hub_download(repo_id="samdurai102024/Tourism-Package-Prediction"
 model = joblib.load(model_path)
 
 # Streamlit UI for Tourism Package Purchase Prediction
-st.title("Tourism Package Purchase Prediction App submitted by Sathiamurthy Samidurai PGAIML student")
-st.write("""
-This application predicts the likelihood of a Tourism Package Purchase based on its operational parameters.
-Please enter the configuration data below to get a prediction.
+st.title("Tourism Package Purchase Prediction")
+st.write(""" This application is developed and hosted by Sathiamurthy Samidurai - PGAIML student.
+This app predicts the likelihood of a Tourism Package Purchase based on its operational parameters.
+Please enter the required data to get a prediction whether a customer will purchase Tourism Package.
 """)
 
 # User input
@@ -62,4 +62,4 @@ if st.button("Predict Tourism Purchase"):
     prediction = model.predict(input_data)[0]
     result = "Yes" if prediction == 1 else "No"
     st.subheader("Prediction Result:")
-    st.success(f"The model predicts that user will purchase tourism package: **{result}**")
+    st.success(f"The model predicts that Customer will purchase tourism package: **{result}**")

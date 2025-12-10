@@ -84,19 +84,6 @@ X_val["Gender"] = X_val["Gender"].replace({"Fe Male": "Female"})
 X_test["Gender"] = X_test["Gender"].str.strip().str.title()
 X_test["Gender"] = X_test["Gender"].replace({"Fe Male": "Female"})
 
-# Select all categorical and object columns for one-hot encoding
-#Cat_Var = X_train.select_dtypes(include=['category', 'object']).columns
-
-#Encoding categorical variables without dropping the first column
-#X_train = pd.get_dummies(X_train, columns = Cat_Var, dtype=int)
-#X_val   = pd.get_dummies(X_val, columns = Cat_Var, dtype=int)
-#X_test  = pd.get_dummies(X_test, columns = Cat_Var, dtype=int)
-
-# Ensure y is DataFrame
-#y_train = y_train.to_frame()
-#y_val = y_val.to_frame()
-#y_test = y_test.to_frame()
-
 # Convert target values (not column names) to integer
 y_train = y_train.astype(int)
 y_val = y_val.astype(int)
